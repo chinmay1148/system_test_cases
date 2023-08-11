@@ -81,3 +81,46 @@ rosrun csv_publisher csv_publisher.py
 ```
 
 Remember to modify the node to fit the exact structure and type of data you have in your CSV file. The provided code is a starting point and will likely require customization.
+
+# Running the info at different speed
+
+To publish the IMU data at a higher frequency than the images, you can adjust the publishing rate for each. Let's assume you want to publish the IMU data 10 times more frequently than the image data. Here's how you can modify the given ROS node to achieve this:
+
+1. Adjust the `csv_publisher` function:
+
+```python
+def csv_publisher():
+    rospy.init_node('csv_publisher', anonymous=True)
+
+    camera_pub = rospy.Publisher('camera_data', Image, queue_size=10)
+    imu_pub = rospy.Publisher('imu_data', Imu, queue_size=10)
+
+    camera_rate = rospy.Rate(1)  # e.g., 1 Hz for camera
+    imu_rate = rospy.Rate(10)  # e.g., 10 Hz for IMU
+
+    csv_data = read_csv_file('path_to_csv_file.csv')
+
+    for row in csv_data:
+        # Assuming the format: timestamp, camera_data, imu_data
+        timestamp, camera_data, imu_data = row
+
+        # Publish Image data
+        img_msg = Image()
+        # TODO: Fill in the data for the Image message using camera_data
+        camera_pub.publish(img_msg)
+        camera_rate.sleep()  # Sleep to match the desired camera rate
+
+        # Publish IMU data 10 times for each image data, as an example
+        imu_msg = Imu()
+        # TODO: Fill in the data for the Imu message using imu_data
+        for _ in range(10):
+            imu_pub.publish(imu_msg)
+            imu_rate.sleep()  # Sleep to match the desired IMU rate
+
+    rospy.spin()
+```
+
+In this example, for each row of the CSV, the camera data is published once, and the IMU data is published ten times. You can adjust the frequencies by modifying the arguments to the `Rate` constructors and changing the range in the loop.
+
+Remember that this is a basic implementation that makes some assumptions about your CSV structure and the nature of your data. Depending on your exact requirements and CSV structure, you may need to refine this approach further.
+
